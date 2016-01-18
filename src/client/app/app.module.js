@@ -2,5 +2,13 @@
     'use strict';
 
     angular
-        .module('app', []);
+        .module('app', [
+            /* Shared modules */
+            'app.core',
+
+            /* Feature areas */
+            'app.components',
+            'app.views'
+
+        ]);
 })();

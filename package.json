@@ -4,6 +4,7 @@
   "description": "gulp build based on john papa pluralsight course",
   "main": "index.js",
   "dependencies": {
+    "angular-sanitize": "^1.4.8",
     "body-parser": "^1.14.2",
     "compression": "^1.6.0",
     "cors": "^2.7.1",
@@ -15,6 +16,7 @@
     "browser-sync": "^2.11.1",
     "del": "^2.2.0",
     "gulp": "^3.9.0",
+    "gulp-angular-templatecache": "^1.8.0",
     "gulp-autoprefixer": "^3.1.0",
     "gulp-if": "^2.0.0",
     "gulp-imagemin": "^2.4.0",
@@ -22,6 +24,7 @@
     "gulp-jscs": "^3.0.2",
     "gulp-jshint": "^2.0.0",
     "gulp-load-plugins": "^1.2.0",
+    "gulp-minify-html": "^1.0.5",
     "gulp-nodemon": "^2.0.6",
     "gulp-plumber": "^1.0.1",
     "gulp-print": "^2.0.1",

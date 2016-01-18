@@ -18,6 +18,7 @@
             client: client,
             css: temp + 'styles.css',
             fonts: './bower_components/font-awesome/fonts/**/*.*',
+            htmltemplates: clientApp + '**/*.html',
             images: client + 'images/**/*.*',
             index: client + 'index.html',
             js: [
@@ -36,6 +37,18 @@
                 json: require('./bower.json'),
                 directory: './bower_components',
                 ignorePath: '../..'
+            },
+
+            //
+            // Template cache
+            //
+            templateCache: {
+                file: 'templates.js',
+                options: {
+                    module: 'app.core',
+                    standAlone: false,
+                    root: 'app/'
+                }
             },
 
             //
