@@ -4,7 +4,7 @@
         var client = './src/client/';
         var clientApp = client + 'app/';
         var server = './src/server/';
-        var temp = './tmp/';
+        var temp = './.tmp/';
 
         var config = {
             //
@@ -14,16 +14,17 @@
                 './src/**/*.js',
                 './*.js'
             ],
-
-            index: client + 'index.html',
+            build: './build/',
             client: client,
             css: temp + 'styles.css',
+            fonts: './bower_components/font-awesome/fonts/**/*.*',
+            images: client + 'images/**/*.*',
+            index: client + 'index.html',
             js: [
                 clientApp + '**/*.module.js',
                 clientApp + '**/*.js',
                 '!' + clientApp + '**/*.spec.js'
             ],
-
             sass: client + 'styles/styles.sass',
             server: server,
             temp: temp,
