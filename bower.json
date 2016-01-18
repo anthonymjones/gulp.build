@@ -1,0 +1,35 @@
+{
+  "name": "gulp.build",
+  "description": "gulp build based on john papa pluralsight course",
+  "main": "index.js",
+  "authors": [
+    "anthony jones"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/anthonymjones/gulp.build",
+  "moduleType": [
+    "globals"
+  ],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular": "~1.4.8",
+    "angular-ui-router": "~0.2.15",
+    "bootstrap": "~3.3.4",
+    "angular-animate": "~1.4.8"
+  },
+  "overrides": {
+    "bootstrap": {
+      "main": [
+        "dist/js/bootstrap.js",
+        "dist/css/bootstrap.css",
+        "less/bootstrap.less"
+      ]
+    }
+  }
+}
