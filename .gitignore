@@ -3,6 +3,6 @@
 /node_modules
 /bower_components
 /.tmp
-
+/build
 /reportcoverage
 npm-debug.log
