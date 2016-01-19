@@ -16,7 +16,7 @@
             {
                 state: 'login',
                 config: {
-                    url: '/login',
+                    url: '/',
                     templateUrl: 'app/views/login/login.html',
                     title: 'login'
                 }

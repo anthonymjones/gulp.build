@@ -107,7 +107,6 @@
         clean(files, done);
     });
 
-
     //
     // SASS WATCHER
     //
@@ -116,10 +115,10 @@
     });
 
     //
-    // INJECT STYLES
+    // INJECT
     //
-    gulp.task('inject', ['wiredep', 'styles'], function() {
-        log('Wiring up the app css into the html, and calling wiredep');
+    gulp.task('inject', ['wiredep', 'styles', 'templatecache'], function() {
+        log('Wire up the app css into the html, and call wiredep');
         return gulp
             .src(config.index)
             .pipe($.inject(gulp.src(config.css)))
@@ -157,40 +156,84 @@
     });
 
     //
-    // SERVE
+    // OPTIMIZE
+    //
+    gulp.task('optimize', ['inject', 'fonts', 'images'], function() {
+        log('Optimizing the javascript, css, html');
+
+        var assets = $.useref.assets({searchPath: '/'});
+        var cssFilter = $.filter('**/*.css');
+        var jsAppFilter = $.filter('**/' + config.optimized.app);
+        var jsLibFilter = $.filter('**/' + config.optimized.lib);
+        var templateCache = config.temp + config.templateCache.file;
+
+        return gulp
+            .src(config.index)
+            .pipe($.plumber())
+            .pipe($.inject(gulp.src(templateCache, {read: false}), {
+                starttag: '<!-- inject:templates:js -->'
+            }))
+            .pipe(assets)
+            .pipe(cssFilter)
+            .pipe($.csso())
+            .pipe(cssFilter.restore())
+            .pipe(jsLibFilter)
+            .pipe($.uglify())
+            .pipe(jsLibFilter.restore())
+            .pipe(jsAppFilter)
+            .pipe($.ngAnnotate())
+            .pipe($.uglify())
+            .pipe(jsAppFilter.restore())
+            .pipe($.rev())
+            .pipe(assets.restore())
+            .pipe($.useref())
+            .pipe($.revReplace())
+            .pipe(gulp.dest(config.build))
+            .pipe($.rev.manifest())
+            .pipe(gulp.dest(config.build));
+    });
+
+    //
+    // BUMP
+    //
+    gulp.task('bump', function() {
+        var msg = 'Bumping versions';
+        var type = args.type;
+        var version = args.version;
+        var options = {};
+        if (version) {
+            options.version = version;
+            msg += ' to ' + version;
+        } else {
+            options.type = type;
+            msg += ' for a ' + type;
+        }
+        log(msg);
+        return gulp
+            .src(config.packages)
+            .pipe($.bump(options))
+            .pipe(gulp.dest(config.root));
+    });
+
+    //
+    // SERVE BUILD
+    //
+    gulp.task('serve-build', ['optimize'], function() {
+        serve(false);
+    });
+
+    //
+    // SERVE DEV
     //
     gulp.task('serve-dev', ['inject'], function() {
+        serve(true);
+    });
 
-        var isDev = true;
-        var nodeOptions = {
-            script: config.nodeServer,
-            delayTime: 1,
-            env: {
-                'PORT': port,
-                'NODE_ENV': isDev ? 'dev' : 'build'
-            },
-            watch: [config.server]
-        };
-
-        return $.nodemon(nodeOptions)
-            .on('restart', function(ev) {
-                log('*** nodemon restarted');
-                log('files changed on restart:\n' + ev);
-                setTimeout(function() {
-                    browserSync.notify('Reloading now ...');
-                    browserSync.reload();
-                }, config.browserSyncReloadDelay);
-            })
-            .on('start', function() {
-                log('*** nodemon started');
-                startBrowserSync();
-            })
-            .on('crash', function() {
-                log('*** nodemon crashed: script crashed for some reason');
-            })
-            .on('exit', function() {
-                log('*** nodemon exited cleanly');
-            });
+    //
+    // TEST
+    //
+    gulp.task('test', ['vet', 'templatecache'], function(done) {
+       startTests(true /* singleRun */, done);
     });
 
     ///////////////////////
@@ -202,24 +245,29 @@
     //
     // BROWSER SYNC
     //
-    function startBrowserSync() {
+    function startBrowserSync(isDev) {
         if(args.nosync || browserSync.active) {
             return;
         }
 
         log('Starting browser-sync on port ' + port);
 
-        gulp.watch([config.sass], ['styles'])
-            .on('change', function(event) { changeEvent(event); });
+        if (isDev) {
+            gulp.watch([config.sass], ['styles'])
+                .on('change', function(event) { changeEvent(event); });
+        } else {
+            gulp.watch([config.sass, config.js, config.html], ['optimize', browserSync.reload()])
+                .on('change', function(event) { changeEvent(event); });
+        }
 
         var options = {
             proxy: 'localhost:' + port,
             port: 3000,
-            files: [
+            files: isDev ? [
                 config.client + '**/*.*',
                 '!' + config.sass,
                 config.temp + '**.*'
-            ],
+            ] : [],
             ghostMode: {
                 clicks: true,
                 location: false,
@@ -266,6 +314,67 @@
             }
         } else {
             $.util.log($.util.colors.blue(msg));
+        }
+    }
+
+    //
+    // SERVE
+    //
+    function serve(isDev) {
+        var nodeOptions = {
+            script: config.nodeServer,
+            delayTime: 1,
+            env: {
+                'PORT': port,
+                'NODE_ENV': isDev ? 'dev' : 'build'
+            },
+            watch: [config.server]
+        };
+
+        return $.nodemon(nodeOptions)
+            .on('restart', function(ev) {
+                log('*** nodemon restarted');
+                log('files changed on restart:\n' + ev);
+                setTimeout(function() {
+                    browserSync.notify('Reloading now ...');
+                    browserSync.reload();
+                }, config.browserSyncReloadDelay);
+            })
+            .on('start', function() {
+                log('*** nodemon started');
+                startBrowserSync(isDev);
+            })
+            .on('crash', function() {
+                log('*** nodemon crashed: script crashed for some reason');
+            })
+            .on('exit', function() {
+                log('*** nodemon exited cleanly');
+            });
+    }
+
+    //
+    // START TESTS
+    //
+    function startTests(singleRun, done) {
+        var karma = require('karma').server;
+        var excludeFiles = [];
+        var serverSpecs = config.serverIntegrationSpecs;
+
+        excludeFiles = serverSpecs;
+
+        karma.start({
+            configFile: __dirname + '/karma.conf.js',
+            exclude: excludeFiles,
+            singleRun: !!singleRun
+        }, karmaCompleted);
+
+        function karmaCompleted(karmaResult) {
+            log('Karma completed!');
+            if (karmaResult === 1) {
+                done('karma: tests failed with code ' + karmaResult);
+            } else {
+                done();
+            }
         }
     }
 

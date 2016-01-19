@@ -11,10 +11,9 @@
             templateUrl: 'app/components/login-button/login-button.html',
             controller: LoginButton,
             controllerAs: 'vm'
-        }
+        };
     }
 
-    LoginButton.$inject = ['logger'];
     /* @ngInject */
     function LoginButton(logger) {
         var vm = this;

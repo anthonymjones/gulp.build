@@ -8,6 +8,7 @@
     routerHelperProvider.$inject = ['$locationProvider', '$stateProvider', '$urlRouterProvider'];
     /* @ngInject */
     function routerHelperProvider($locationProvider, $stateProvider, $urlRouterProvider) {
+        /* jshint validthis:true */
         var config = {
             docTitle: undefined,
             resolveAlways: {}
@@ -77,7 +78,7 @@
                                 toState.loadedTemplateUrl)) || 'unknown target';
                             return 'Error routing to ' + dest + '. ' +
                                 error.message || error.data || '' +
-                                '. <br/>' + (errors.statusText || '') +
+                                '. <br/>' + (error.statusText || '') +
                                 ': ' + (error.status || '');
                         }
                     }

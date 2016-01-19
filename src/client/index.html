@@ -1,22 +1,27 @@
 <!DOCTYPE html>
-<html lang="en" ng-app="app">
+<html lang="en" ng-app="app" ng-strict-di>
 <head>
     <meta charset="UTF-8">
     <title>Gulp Build</title>
 
+    <!-- build:css styles/lib.css -->
     <!-- bower:css -->
     <link rel="stylesheet" href="/bower_components/bootstrap/dist/css/bootstrap.css" />
     <link rel="stylesheet" href="/bower_components/toastr/toastr.css" />
     <!-- endbower -->
+    <!-- endbuild -->
 
+    <!-- build:css styles/app.css -->
     <!-- inject:css -->
     <link rel="stylesheet" href="/.tmp/styles.css">
     <!-- endinject -->
+    <!-- endbuild -->
 
 </head>
 <body>
     <ui-view></ui-view>
 
+    <!-- build:js js/lib.js -->
     <!-- bower:js -->
     <script src="/bower_components/angular/angular.js"></script>
     <script src="/bower_components/angular-ui-router/release/angular-ui-router.js"></script>
@@ -26,7 +31,9 @@
     <script src="/bower_components/angular-sanitize/angular-sanitize.js"></script>
     <script src="/bower_components/toastr/toastr.js"></script>
     <!-- endbower -->
+    <!-- endbuild -->
 
+    <!-- build:js js/app.js -->
     <!-- inject:js -->
     <script src="/src/client/app/app.module.js"></script>
     <script src="/src/client/app/components/components.module.js"></script>
@@ -45,5 +52,9 @@
     <script src="/src/client/app/views/login/login.route.js"></script>
     <!-- endinject -->
 
+    <!-- inject:templates:js -->
+    <!-- endinject -->
+
+    <!-- endbuild -->
 </body>
 </html>

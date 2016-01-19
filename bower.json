@@ -1,5 +1,6 @@
 {
   "name": "gulp.build",
+  "version": "0.1.0",
   "description": "gulp build based on john papa pluralsight course",
   "main": "index.js",
   "authors": [
@@ -34,5 +35,8 @@
         "less/bootstrap.less"
       ]
     }
+  },
+  "devDependencies": {
+    "bardjs": "~0.1.8"
   }
 }

@@ -3,8 +3,12 @@
     module.exports = function() {
         var client = './src/client/';
         var clientApp = client + 'app/';
+        var report = './report';
+        var root = './';
         var server = './src/server/';
         var temp = './.tmp/';
+        var wiredep = require('wiredep');
+        var bowerFiles = wiredep({devDependencies: true})['js'];
 
         var config = {
             //
@@ -18,6 +22,7 @@
             client: client,
             css: temp + 'styles.css',
             fonts: './bower_components/font-awesome/fonts/**/*.*',
+            html:  clientApp + '**/*.html',
             htmltemplates: clientApp + '**/*.html',
             images: client + 'images/**/*.*',
             index: client + 'index.html',
@@ -27,8 +32,18 @@
                 '!' + clientApp + '**/*.spec.js'
             ],
             sass: client + 'styles/styles.sass',
+            report: report,
+            root: root,
             server: server,
             temp: temp,
+
+            //
+            // Optimized files
+            //
+            optimized: {
+                app: 'app.js',
+                lib: 'lib.js'
+            },
 
             //
             // Bower & npm locations
@@ -38,6 +53,16 @@
                 directory: './bower_components',
                 ignorePath: '../..'
             },
+            packages: [
+                './package.json',
+                './bower.json'
+            ],
+
+            //
+            // Karma and testing settings
+            //
+            specHelpers: [client + 'test-helpers/*.js'],
+            serverIntegrationSpecs: [client + 'tests/server-integration/**/*.spec.js'],
 
             //
             // Template cache
@@ -70,6 +95,35 @@
             return options;
         };
 
+        config.karma = getKarmaOptions();
+
         return config;
+
+        /////////////////
+
+        function getKarmaOptions() {
+            var options = {
+                files: [].concat(
+                    bowerFiles,
+                    config.specHelpers,
+                    client + '**/*.module.js',
+                    client + '**/*.js',
+                    temp + config. templateCache.file,
+                    config.serverIntegrationSpecs
+                ),
+                exclude: [],
+                coverage: {
+                    dir: report + 'coverage',
+                    reporters: [
+                        {type: 'html', subdir: 'report-html'},
+                        {type: 'lcov', subdir: 'report-lcov'},
+                        {type: 'text-summary'}
+                    ]
+                },
+                preprocessors: {}
+            };
+            options.preprocessors[clientApp + '**/!(*.spec)+(.js)'] = ['coverage'];
+            return options;
+        }
     };
 })();
