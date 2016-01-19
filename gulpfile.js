@@ -2,11 +2,13 @@
     'use strict';
 
     var gulp = require('gulp');
+    var _ = require('lodash');
     var $ = require('gulp-load-plugins')({lazy: true});
     var args = require('yargs').argv;
     var browserSync = require('browser-sync');
     var config = require('./gulp.config')();
     var del = require('del');
+    var path = require('path');
     var port = process.env.PORT || config.defaultPort;
 
     //
@@ -156,9 +158,58 @@
     });
 
     //
+    // BUILD
+    //
+    gulp.task('build', ['optimize', 'images', 'fonts'], function() {
+        log('Building everything');
+
+        var msg = {
+            title: 'gulp build',
+            subtitle: 'Deployed to the build folder',
+            messgae: 'Running `gulp serve-build`'
+        };
+        del(config.temp);
+        log(msg);
+        notify(msg);
+    });
+
+    //
+    //
+    //
+    gulp.task('serve-specs', ['build-specs'], function() {
+       log('run the spec runner');
+        serve(true /* isDev */, true /* specRunner */);
+    });
+
+    //
+    // BUILD SPECS
+    //
+    gulp.task('build-specs', ['templatecache'], function() {
+        log('building the spec runner');
+
+        var wiredep = require('wiredep').stream;
+        var options = config.getWiredepDefaultOptions();
+        options.devDependencies = true;
+
+        return gulp
+            .src(config.specRunner)
+            .pipe(wiredep(options))
+            .pipe($.inject(gulp.src(config.testlibraries),
+                {name: 'inject:testlibraries', read: false}))
+            .pipe($.inject(gulp.src(config.js)))
+            .pipe($.inject(gulp.src(config.specHelpers),
+                {name: 'inject:spechelpers', read: false}))
+            .pipe($.inject(gulp.src(config.specs),
+                {name: 'inject:specs', read: false}))
+            .pipe($.inject(gulp.src(config.temp + config.templateCache.file),
+                {name: 'inject:templates', read: false}))
+            .pipe(gulp.dest(config.client));
+    });
+
+    //
     // OPTIMIZE
     //
-    gulp.task('optimize', ['inject', 'fonts', 'images'], function() {
+    gulp.task('optimize', ['inject', 'test'], function() {
         log('Optimizing the javascript, css, html');
 
         var assets = $.useref.assets({searchPath: '/'});
@@ -218,7 +269,7 @@
     //
     // SERVE BUILD
     //
-    gulp.task('serve-build', ['optimize'], function() {
+    gulp.task('serve-build', ['build'], function() {
         serve(false);
     });
 
@@ -233,7 +284,14 @@
     // TEST
     //
     gulp.task('test', ['vet', 'templatecache'], function(done) {
-       startTests(true /* singleRun */, done);
+        startTests(true /* singleRun */, done);
+    });
+
+    //
+    // AUTOTEST
+    //
+    gulp.task('autotest', ['vet', 'templatecache'], function(done) {
+        startTests(false /* singleRun */, done);
     });
 
     ///////////////////////
@@ -245,7 +303,7 @@
     //
     // BROWSER SYNC
     //
-    function startBrowserSync(isDev) {
+    function startBrowserSync(isDev, specRunner) {
         if(args.nosync || browserSync.active) {
             return;
         }
@@ -281,6 +339,10 @@
             notify: true,
             reloadDelay: 500
         };
+
+        if (specRunner) {
+            options.startPath = config.specRunnerFile;
+        }
 
         browserSync(options);
     }
@@ -318,9 +380,23 @@
     }
 
     //
+    // NOTIFY
+    //
+    function notify(options) {
+        var notifier = require('node-notifier');
+        var notifyOptions = {
+            sound: 'Bottle',
+            contentImage: '',
+            icon: ''
+        };
+        _.assign(notifyOptions, options);
+        notifier.notify(notifyOptions);
+    }
+
+    //
     // SERVE
     //
-    function serve(isDev) {
+    function serve(isDev, specRunner) {
         var nodeOptions = {
             script: config.nodeServer,
             delayTime: 1,
@@ -342,7 +418,7 @@
             })
             .on('start', function() {
                 log('*** nodemon started');
-                startBrowserSync(isDev);
+                startBrowserSync(isDev, specRunner);
             })
             .on('crash', function() {
                 log('*** nodemon crashed: script crashed for some reason');
