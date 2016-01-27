@@ -15,6 +15,7 @@
     }
 
     /* @ngInject */
+    LoginButton.$inject = ['logger'];
     function LoginButton(logger) {
         var vm = this;
 
