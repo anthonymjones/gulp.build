@@ -1,14 +1,33 @@
 $blue: #4078C0
 $green: #5CCB8B
-$nothing: #000000
+$greener: #5cb85c
+$so-green: #2b542c
+$nothing-er-black: #000000
 
 $pretty-big: 3rem
+$really-big: 20rem
+
+.container
+  padding: 10rem
 
 .full-width
   width: 100%
 
-.btn
-  transform-origin: 70%
+.big-green-btn
+  color: whitesmoke
+  font-size: $pretty-big
+  border: transparent
+  border-radius: 15px
+  height: ($really-big / 2)
+  width: ($really-big * 1.32)
+  background-color: $green
+
+.big-green-btn:active
+  background-color: $greener
+  border: 2px solid $so-green
+
+.big-green-btn:focus
+  outline: none
 
 .gulp-building
   color: $blue
